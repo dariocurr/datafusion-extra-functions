@@ -14,7 +14,7 @@ To use these functions, you'll just need to call:
 datafusion_functions_extra::register_all_extra_functions(&mut ctx)?;
 ```
 
-# Examples
+## Examples
 
 ```sql
 -- Create a table with various columns containing strings, integers, floats, dates, and times
