@@ -57,9 +57,12 @@ where
             .map(|count| scalar::ScalarValue::from(*count))
             .collect();
 
-        let values_scalar = scalar::ScalarValue::new_list_nullable(&values, &self.data_type.clone());
-        let frequencies_scalar =
-            scalar::ScalarValue::new_list_nullable(&frequencies, &arrow::datatypes::DataType::Int64);
+        let values_scalar =
+            scalar::ScalarValue::new_list_nullable(&values, &self.data_type.clone());
+        let frequencies_scalar = scalar::ScalarValue::new_list_nullable(
+            &frequencies,
+            &arrow::datatypes::DataType::Int64,
+        );
 
         Ok(vec![
             scalar::ScalarValue::List(values_scalar),
@@ -73,7 +76,8 @@ where
         }
 
         let values_array = common::cast::as_primitive_array::<T>(&states[0])?;
-        let counts_array = common::cast::as_primitive_array::<arrow::datatypes::Int64Type>(&states[1])?;
+        let counts_array =
+            common::cast::as_primitive_array::<arrow::datatypes::Int64Type>(&states[1])?;
 
         for i in 0..values_array.len() {
             let value = values_array.value(i);
@@ -113,7 +117,8 @@ where
     }
 
     fn size(&self) -> usize {
-        std::mem::size_of_val(&self.value_counts) + self.value_counts.len() * std::mem::size_of::<(T::Native, i64)>()
+        std::mem::size_of_val(&self.value_counts)
+            + self.value_counts.len() * std::mem::size_of::<(T::Native, i64)>()
     }
 }
 
@@ -171,9 +176,12 @@ where
             .map(|count| scalar::ScalarValue::from(*count))
             .collect();
 
-        let values_scalar = scalar::ScalarValue::new_list_nullable(&values, &self.data_type.clone());
-        let frequencies_scalar =
-            scalar::ScalarValue::new_list_nullable(&frequencies, &arrow::datatypes::DataType::Int64);
+        let values_scalar =
+            scalar::ScalarValue::new_list_nullable(&values, &self.data_type.clone());
+        let frequencies_scalar = scalar::ScalarValue::new_list_nullable(
+            &frequencies,
+            &arrow::datatypes::DataType::Int64,
+        );
 
         Ok(vec![
             scalar::ScalarValue::List(values_scalar),
@@ -187,11 +195,15 @@ where
         }
 
         let values_array = common::cast::as_primitive_array::<T>(&states[0])?;
-        let counts_array = common::cast::as_primitive_array::<arrow::datatypes::Int64Type>(&states[1])?;
+        let counts_array =
+            common::cast::as_primitive_array::<arrow::datatypes::Int64Type>(&states[1])?;
 
         for i in 0..values_array.len() {
             let count = counts_array.value(i);
-            let entry = self.value_counts.entry(Hashable(values_array.value(i))).or_insert(0);
+            let entry = self
+                .value_counts
+                .entry(Hashable(values_array.value(i)))
+                .or_insert(0);
             *entry += count;
         }
 
@@ -241,8 +253,11 @@ mod tests {
 
     #[test]
     fn test_mode_accumulator_single_mode_int64() -> error::Result<()> {
-        let mut acc = PrimitiveModeAccumulator::<arrow::datatypes::Int64Type>::new(&arrow::datatypes::DataType::Int64);
-        let values: arrow::array::ArrayRef = sync::Arc::new(arrow::array::Int64Array::from(vec![1, 2, 2, 3, 3, 3]));
+        let mut acc = PrimitiveModeAccumulator::<arrow::datatypes::Int64Type>::new(
+            &arrow::datatypes::DataType::Int64,
+        );
+        let values: arrow::array::ArrayRef =
+            sync::Arc::new(arrow::array::Int64Array::from(vec![1, 2, 2, 3, 3, 3]));
         acc.update_batch(&[values])?;
         let result = acc.evaluate()?;
         assert_eq!(
@@ -257,7 +272,9 @@ mod tests {
 
     #[test]
     fn test_mode_accumulator_with_nulls_int64() -> error::Result<()> {
-        let mut acc = PrimitiveModeAccumulator::<arrow::datatypes::Int64Type>::new(&arrow::datatypes::DataType::Int64);
+        let mut acc = PrimitiveModeAccumulator::<arrow::datatypes::Int64Type>::new(
+            &arrow::datatypes::DataType::Int64,
+        );
         let values: arrow::array::ArrayRef = sync::Arc::new(arrow::array::Int64Array::from(vec![
             None,
             Some(1),
@@ -281,8 +298,11 @@ mod tests {
 
     #[test]
     fn test_mode_accumulator_tie_case_int64() -> error::Result<()> {
-        let mut acc = PrimitiveModeAccumulator::<arrow::datatypes::Int64Type>::new(&arrow::datatypes::DataType::Int64);
-        let values: arrow::array::ArrayRef = sync::Arc::new(arrow::array::Int64Array::from(vec![1, 2, 2, 3, 3]));
+        let mut acc = PrimitiveModeAccumulator::<arrow::datatypes::Int64Type>::new(
+            &arrow::datatypes::DataType::Int64,
+        );
+        let values: arrow::array::ArrayRef =
+            sync::Arc::new(arrow::array::Int64Array::from(vec![1, 2, 2, 3, 3]));
         acc.update_batch(&[values])?;
         let result = acc.evaluate()?;
         assert_eq!(
@@ -297,7 +317,9 @@ mod tests {
 
     #[test]
     fn test_mode_accumulator_only_nulls_int64() -> error::Result<()> {
-        let mut acc = PrimitiveModeAccumulator::<arrow::datatypes::Int64Type>::new(&arrow::datatypes::DataType::Int64);
+        let mut acc = PrimitiveModeAccumulator::<arrow::datatypes::Int64Type>::new(
+            &arrow::datatypes::DataType::Int64,
+        );
         let values: arrow::array::ArrayRef =
             sync::Arc::new(arrow::array::Int64Array::from(vec![None, None, None, None]));
         acc.update_batch(&[values])?;
@@ -314,9 +336,13 @@ mod tests {
 
     #[test]
     fn test_mode_accumulator_single_mode_float64() -> error::Result<()> {
-        let mut acc = FloatModeAccumulator::<arrow::datatypes::Float64Type>::new(&arrow::datatypes::DataType::Float64);
+        let mut acc = FloatModeAccumulator::<arrow::datatypes::Float64Type>::new(
+            &arrow::datatypes::DataType::Float64,
+        );
         let values: arrow::array::ArrayRef =
-            sync::Arc::new(arrow::array::Float64Array::from(vec![1.0, 2.0, 2.0, 3.0, 3.0, 3.0]));
+            sync::Arc::new(arrow::array::Float64Array::from(vec![
+                1.0, 2.0, 2.0, 3.0, 3.0, 3.0,
+            ]));
         acc.update_batch(&[values])?;
         let result = acc.evaluate()?;
         assert_eq!(
@@ -331,16 +357,19 @@ mod tests {
 
     #[test]
     fn test_mode_accumulator_with_nulls_float64() -> error::Result<()> {
-        let mut acc = FloatModeAccumulator::<arrow::datatypes::Float64Type>::new(&arrow::datatypes::DataType::Float64);
-        let values: arrow::array::ArrayRef = sync::Arc::new(arrow::array::Float64Array::from(vec![
-            None,
-            Some(1.0),
-            Some(2.0),
-            Some(2.0),
-            Some(3.0),
-            Some(3.0),
-            Some(3.0),
-        ]));
+        let mut acc = FloatModeAccumulator::<arrow::datatypes::Float64Type>::new(
+            &arrow::datatypes::DataType::Float64,
+        );
+        let values: arrow::array::ArrayRef =
+            sync::Arc::new(arrow::array::Float64Array::from(vec![
+                None,
+                Some(1.0),
+                Some(2.0),
+                Some(2.0),
+                Some(3.0),
+                Some(3.0),
+                Some(3.0),
+            ]));
         acc.update_batch(&[values])?;
         let result = acc.evaluate()?;
         assert_eq!(
@@ -355,9 +384,13 @@ mod tests {
 
     #[test]
     fn test_mode_accumulator_tie_case_float64() -> error::Result<()> {
-        let mut acc = FloatModeAccumulator::<arrow::datatypes::Float64Type>::new(&arrow::datatypes::DataType::Float64);
+        let mut acc = FloatModeAccumulator::<arrow::datatypes::Float64Type>::new(
+            &arrow::datatypes::DataType::Float64,
+        );
         let values: arrow::array::ArrayRef =
-            sync::Arc::new(arrow::array::Float64Array::from(vec![1.0, 2.0, 2.0, 3.0, 3.0]));
+            sync::Arc::new(arrow::array::Float64Array::from(vec![
+                1.0, 2.0, 2.0, 3.0, 3.0,
+            ]));
         acc.update_batch(&[values])?;
         let result = acc.evaluate()?;
         assert_eq!(
@@ -372,9 +405,13 @@ mod tests {
 
     #[test]
     fn test_mode_accumulator_only_nulls_float64() -> error::Result<()> {
-        let mut acc = FloatModeAccumulator::<arrow::datatypes::Float64Type>::new(&arrow::datatypes::DataType::Float64);
+        let mut acc = FloatModeAccumulator::<arrow::datatypes::Float64Type>::new(
+            &arrow::datatypes::DataType::Float64,
+        );
         let values: arrow::array::ArrayRef =
-            sync::Arc::new(arrow::array::Float64Array::from(vec![None, None, None, None]));
+            sync::Arc::new(arrow::array::Float64Array::from(vec![
+                None, None, None, None,
+            ]));
         acc.update_batch(&[values])?;
         let result = acc.evaluate()?;
         assert_eq!(
@@ -389,8 +426,9 @@ mod tests {
 
     #[test]
     fn test_mode_accumulator_single_mode_date64() -> error::Result<()> {
-        let mut acc =
-            PrimitiveModeAccumulator::<arrow::datatypes::Date64Type>::new(&arrow::datatypes::DataType::Date64);
+        let mut acc = PrimitiveModeAccumulator::<arrow::datatypes::Date64Type>::new(
+            &arrow::datatypes::DataType::Date64,
+        );
         let values: arrow::array::ArrayRef = sync::Arc::new(arrow::array::Date64Array::from(vec![
             1609459200000,
             1609545600000,
@@ -413,8 +451,9 @@ mod tests {
 
     #[test]
     fn test_mode_accumulator_with_nulls_date64() -> error::Result<()> {
-        let mut acc =
-            PrimitiveModeAccumulator::<arrow::datatypes::Date64Type>::new(&arrow::datatypes::DataType::Date64);
+        let mut acc = PrimitiveModeAccumulator::<arrow::datatypes::Date64Type>::new(
+            &arrow::datatypes::DataType::Date64,
+        );
         let values: arrow::array::ArrayRef = sync::Arc::new(arrow::array::Date64Array::from(vec![
             None,
             Some(1609459200000),
@@ -438,8 +477,9 @@ mod tests {
 
     #[test]
     fn test_mode_accumulator_tie_case_date64() -> error::Result<()> {
-        let mut acc =
-            PrimitiveModeAccumulator::<arrow::datatypes::Date64Type>::new(&arrow::datatypes::DataType::Date64);
+        let mut acc = PrimitiveModeAccumulator::<arrow::datatypes::Date64Type>::new(
+            &arrow::datatypes::DataType::Date64,
+        );
         let values: arrow::array::ArrayRef = sync::Arc::new(arrow::array::Date64Array::from(vec![
             1609459200000,
             1609545600000,
@@ -461,10 +501,12 @@ mod tests {
 
     #[test]
     fn test_mode_accumulator_only_nulls_date64() -> error::Result<()> {
-        let mut acc =
-            PrimitiveModeAccumulator::<arrow::datatypes::Date64Type>::new(&arrow::datatypes::DataType::Date64);
-        let values: arrow::array::ArrayRef =
-            sync::Arc::new(arrow::array::Date64Array::from(vec![None, None, None, None]));
+        let mut acc = PrimitiveModeAccumulator::<arrow::datatypes::Date64Type>::new(
+            &arrow::datatypes::DataType::Date64,
+        );
+        let values: arrow::array::ArrayRef = sync::Arc::new(arrow::array::Date64Array::from(vec![
+            None, None, None, None,
+        ]));
         acc.update_batch(&[values])?;
         let result = acc.evaluate()?;
         assert_eq!(
@@ -482,14 +524,15 @@ mod tests {
         let mut acc = PrimitiveModeAccumulator::<arrow::datatypes::Time64MicrosecondType>::new(
             &arrow::datatypes::DataType::Time64(arrow::datatypes::TimeUnit::Microsecond),
         );
-        let values: arrow::array::ArrayRef = sync::Arc::new(arrow::array::Time64MicrosecondArray::from(vec![
-            3600000000,
-            7200000000,
-            7200000000,
-            10800000000,
-            10800000000,
-            10800000000,
-        ]));
+        let values: arrow::array::ArrayRef =
+            sync::Arc::new(arrow::array::Time64MicrosecondArray::from(vec![
+                3600000000,
+                7200000000,
+                7200000000,
+                10800000000,
+                10800000000,
+                10800000000,
+            ]));
         acc.update_batch(&[values])?;
         let result = acc.evaluate()?;
         assert_eq!(
@@ -507,15 +550,16 @@ mod tests {
         let mut acc = PrimitiveModeAccumulator::<arrow::datatypes::Time64MicrosecondType>::new(
             &arrow::datatypes::DataType::Time64(arrow::datatypes::TimeUnit::Microsecond),
         );
-        let values: arrow::array::ArrayRef = sync::Arc::new(arrow::array::Time64MicrosecondArray::from(vec![
-            None,
-            Some(3600000000),
-            Some(7200000000),
-            Some(7200000000),
-            Some(10800000000),
-            Some(10800000000),
-            Some(10800000000),
-        ]));
+        let values: arrow::array::ArrayRef =
+            sync::Arc::new(arrow::array::Time64MicrosecondArray::from(vec![
+                None,
+                Some(3600000000),
+                Some(7200000000),
+                Some(7200000000),
+                Some(10800000000),
+                Some(10800000000),
+                Some(10800000000),
+            ]));
         acc.update_batch(&[values])?;
         let result = acc.evaluate()?;
         assert_eq!(
@@ -533,13 +577,14 @@ mod tests {
         let mut acc = PrimitiveModeAccumulator::<arrow::datatypes::Time64MicrosecondType>::new(
             &arrow::datatypes::DataType::Time64(arrow::datatypes::TimeUnit::Microsecond),
         );
-        let values: arrow::array::ArrayRef = sync::Arc::new(arrow::array::Time64MicrosecondArray::from(vec![
-            3600000000,
-            7200000000,
-            7200000000,
-            10800000000,
-            10800000000,
-        ]));
+        let values: arrow::array::ArrayRef =
+            sync::Arc::new(arrow::array::Time64MicrosecondArray::from(vec![
+                3600000000,
+                7200000000,
+                7200000000,
+                10800000000,
+                10800000000,
+            ]));
         acc.update_batch(&[values])?;
         let result = acc.evaluate()?;
         assert_eq!(
@@ -558,7 +603,9 @@ mod tests {
             &arrow::datatypes::DataType::Time64(arrow::datatypes::TimeUnit::Microsecond),
         );
         let values: arrow::array::ArrayRef =
-            sync::Arc::new(arrow::array::Time64MicrosecondArray::from(vec![None, None, None, None]));
+            sync::Arc::new(arrow::array::Time64MicrosecondArray::from(vec![
+                None, None, None, None,
+            ]));
         acc.update_batch(&[values])?;
         let result = acc.evaluate()?;
         assert_eq!(

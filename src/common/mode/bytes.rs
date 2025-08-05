@@ -64,9 +64,12 @@ impl logical_expr::Accumulator for BytesModeAccumulator {
             .map(|&count| scalar::ScalarValue::Int64(Some(count)))
             .collect();
 
-        let values_scalar = scalar::ScalarValue::new_list_nullable(&values, &arrow::datatypes::DataType::Utf8);
-        let frequencies_scalar =
-            scalar::ScalarValue::new_list_nullable(&frequencies, &arrow::datatypes::DataType::Int64);
+        let values_scalar =
+            scalar::ScalarValue::new_list_nullable(&values, &arrow::datatypes::DataType::Utf8);
+        let frequencies_scalar = scalar::ScalarValue::new_list_nullable(
+            &frequencies,
+            &arrow::datatypes::DataType::Int64,
+        );
 
         Ok(vec![
             scalar::ScalarValue::List(values_scalar),
@@ -80,7 +83,8 @@ impl logical_expr::Accumulator for BytesModeAccumulator {
         }
 
         let values_array = arrow::array::as_string_array(&states[0]);
-        let counts_array = common::cast::as_primitive_array::<arrow::datatypes::Int64Type>(&states[1])?;
+        let counts_array =
+            common::cast::as_primitive_array::<arrow::datatypes::Int64Type>(&states[1])?;
 
         for (i, value_option) in values_array.iter().enumerate() {
             if let Some(value) = value_option {
@@ -114,7 +118,9 @@ impl logical_expr::Accumulator for BytesModeAccumulator {
 
         match mode {
             Some(result) => match &self.data_type {
-                arrow::datatypes::DataType::Utf8View => Ok(scalar::ScalarValue::Utf8View(Some(result))),
+                arrow::datatypes::DataType::Utf8View => {
+                    Ok(scalar::ScalarValue::Utf8View(Some(result)))
+                }
                 _ => Ok(scalar::ScalarValue::Utf8(Some(result))),
             },
             None => match &self.data_type {
@@ -125,7 +131,8 @@ impl logical_expr::Accumulator for BytesModeAccumulator {
     }
 
     fn size(&self) -> usize {
-        self.value_counts.capacity() * std::mem::size_of::<(String, i64)>() + std::mem::size_of_val(&self.data_type)
+        self.value_counts.capacity() * std::mem::size_of::<(String, i64)>()
+            + std::mem::size_of_val(&self.data_type)
     }
 }
 
@@ -177,8 +184,11 @@ mod tests {
     #[test]
     fn test_mode_accumulator_all_nulls_utf8() -> error::Result<()> {
         let mut acc = BytesModeAccumulator::new(&arrow::datatypes::DataType::Utf8);
-        let values: arrow::array::ArrayRef =
-            sync::Arc::new(arrow::array::StringArray::from(vec![None as Option<&str>, None, None]));
+        let values: arrow::array::ArrayRef = sync::Arc::new(arrow::array::StringArray::from(vec![
+            None as Option<&str>,
+            None,
+            None,
+        ]));
 
         acc.update_batch(&[values])?;
         let result = acc.evaluate()?;
@@ -211,48 +221,57 @@ mod tests {
     #[test]
     fn test_mode_accumulator_single_mode_utf8view() -> error::Result<()> {
         let mut acc = BytesModeAccumulator::new(&arrow::datatypes::DataType::Utf8View);
-        let values: arrow::array::ArrayRef = sync::Arc::new(arrow::array::GenericByteViewArray::from(vec![
-            Some("apple"),
-            Some("banana"),
-            Some("apple"),
-            Some("orange"),
-            Some("banana"),
-            Some("apple"),
-        ]));
+        let values: arrow::array::ArrayRef =
+            sync::Arc::new(arrow::array::GenericByteViewArray::from(vec![
+                Some("apple"),
+                Some("banana"),
+                Some("apple"),
+                Some("orange"),
+                Some("banana"),
+                Some("apple"),
+            ]));
 
         acc.update_batch(&[values])?;
         let result = acc.evaluate()?;
 
-        assert_eq!(result, scalar::ScalarValue::Utf8View(Some("apple".to_string())));
+        assert_eq!(
+            result,
+            scalar::ScalarValue::Utf8View(Some("apple".to_string()))
+        );
         Ok(())
     }
 
     #[test]
     fn test_mode_accumulator_tie_utf8view() -> error::Result<()> {
         let mut acc = BytesModeAccumulator::new(&arrow::datatypes::DataType::Utf8View);
-        let values: arrow::array::ArrayRef = sync::Arc::new(arrow::array::GenericByteViewArray::from(vec![
-            Some("apple"),
-            Some("banana"),
-            Some("apple"),
-            Some("orange"),
-            Some("banana"),
-        ]));
+        let values: arrow::array::ArrayRef =
+            sync::Arc::new(arrow::array::GenericByteViewArray::from(vec![
+                Some("apple"),
+                Some("banana"),
+                Some("apple"),
+                Some("orange"),
+                Some("banana"),
+            ]));
 
         acc.update_batch(&[values])?;
         let result = acc.evaluate()?;
 
-        assert_eq!(result, scalar::ScalarValue::Utf8View(Some("apple".to_string())));
+        assert_eq!(
+            result,
+            scalar::ScalarValue::Utf8View(Some("apple".to_string()))
+        );
         Ok(())
     }
 
     #[test]
     fn test_mode_accumulator_all_nulls_utf8view() -> error::Result<()> {
         let mut acc = BytesModeAccumulator::new(&arrow::datatypes::DataType::Utf8View);
-        let values: arrow::array::ArrayRef = sync::Arc::new(arrow::array::GenericByteViewArray::from(vec![
-            None as Option<&str>,
-            None,
-            None,
-        ]));
+        let values: arrow::array::ArrayRef =
+            sync::Arc::new(arrow::array::GenericByteViewArray::from(vec![
+                None as Option<&str>,
+                None,
+                None,
+            ]));
 
         acc.update_batch(&[values])?;
         let result = acc.evaluate()?;
@@ -264,21 +283,25 @@ mod tests {
     #[test]
     fn test_mode_accumulator_with_nulls_utf8view() -> error::Result<()> {
         let mut acc = BytesModeAccumulator::new(&arrow::datatypes::DataType::Utf8View);
-        let values: arrow::array::ArrayRef = sync::Arc::new(arrow::array::GenericByteViewArray::from(vec![
-            Some("apple"),
-            None,
-            Some("banana"),
-            Some("apple"),
-            None,
-            None,
-            None,
-            Some("banana"),
-        ]));
+        let values: arrow::array::ArrayRef =
+            sync::Arc::new(arrow::array::GenericByteViewArray::from(vec![
+                Some("apple"),
+                None,
+                Some("banana"),
+                Some("apple"),
+                None,
+                None,
+                None,
+                Some("banana"),
+            ]));
 
         acc.update_batch(&[values])?;
         let result = acc.evaluate()?;
 
-        assert_eq!(result, scalar::ScalarValue::Utf8View(Some("apple".to_string())));
+        assert_eq!(
+            result,
+            scalar::ScalarValue::Utf8View(Some("apple".to_string()))
+        );
         Ok(())
     }
 }

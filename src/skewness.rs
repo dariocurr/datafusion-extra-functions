@@ -3,7 +3,13 @@ use datafusion::{arrow, logical_expr, scalar};
 use std::ops::{Div, Mul, Sub};
 use std::{any, fmt};
 
-make_udaf_expr_and_func!(SkewnessFunc, skewness, x, "Computes the skewness value.", skewness_udaf);
+make_udaf_expr_and_func!(
+    SkewnessFunc,
+    skewness,
+    x,
+    "Computes the skewness value.",
+    skewness_udaf
+);
 
 pub struct SkewnessFunc {
     name: String,
@@ -26,6 +32,7 @@ impl Default for SkewnessFunc {
 
 impl SkewnessFunc {
     pub fn new() -> Self {
+        // TODO waiting for for TypeSignatureClass::Numeric to coerce
         Self {
             name: "skewness".to_string(),
             signature: logical_expr::Signature::exact(
@@ -69,8 +76,10 @@ impl logical_expr::AggregateUDFImpl for SkewnessFunc {
         Ok(vec![
             arrow::datatypes::Field::new("count", arrow::datatypes::DataType::UInt64, true).into(),
             arrow::datatypes::Field::new("sum", arrow::datatypes::DataType::Float64, true).into(),
-            arrow::datatypes::Field::new("sum_sqr", arrow::datatypes::DataType::Float64, true).into(),
-            arrow::datatypes::Field::new("sum_cub", arrow::datatypes::DataType::Float64, true).into(),
+            arrow::datatypes::Field::new("sum_sqr", arrow::datatypes::DataType::Float64, true)
+                .into(),
+            arrow::datatypes::Field::new("sum_cub", arrow::datatypes::DataType::Float64, true)
+                .into(),
         ])
     }
 }
@@ -98,7 +107,10 @@ impl SkewnessAccumulator {
 }
 
 impl logical_expr::Accumulator for SkewnessAccumulator {
-    fn update_batch(&mut self, values: &[arrow::array::ArrayRef]) -> datafusion::common::Result<()> {
+    fn update_batch(
+        &mut self,
+        values: &[arrow::array::ArrayRef],
+    ) -> datafusion::common::Result<()> {
         let array = values[0].as_primitive::<arrow::datatypes::Float64Type>();
         for val in array.iter().flatten() {
             self.count += 1;
@@ -114,14 +126,19 @@ impl logical_expr::Accumulator for SkewnessAccumulator {
         }
         let count = self.count as f64;
         let t1 = 1f64 / count;
-        let p = (t1 * (self.sum_sqr - self.sum * self.sum * t1)).powi(3).max(0f64);
+        let p = (t1 * (self.sum_sqr - self.sum * self.sum * t1))
+            .powi(3)
+            .max(0f64);
         let div = p.sqrt();
         if div == 0f64 {
             return Ok(scalar::ScalarValue::Float64(None));
         }
         let t2 = count.mul(count.sub(1f64)).sqrt().div(count.sub(2f64));
-        let res =
-            t2 * t1 * (self.sum_cub - 3f64 * self.sum_sqr * self.sum * t1 + 2f64 * self.sum.powi(3) * t1 * t1) / div;
+        let res = t2
+            * t1
+            * (self.sum_cub - 3f64 * self.sum_sqr * self.sum * t1
+                + 2f64 * self.sum.powi(3) * t1 * t1)
+            / div;
         Ok(scalar::ScalarValue::Float64(Some(res)))
     }
 

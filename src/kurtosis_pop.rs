@@ -32,6 +32,7 @@ impl Default for KurtosisPopFunction {
 }
 
 impl KurtosisPopFunction {
+    // TODO waiting for for TypeSignatureClass::Numeric to coerce
     pub fn new() -> Self {
         Self {
             signature: logical_expr::Signature::exact(
@@ -55,7 +56,10 @@ impl logical_expr::AggregateUDFImpl for KurtosisPopFunction {
         &self.signature
     }
 
-    fn return_type(&self, _arg_types: &[arrow::datatypes::DataType]) -> error::Result<arrow::datatypes::DataType> {
+    fn return_type(
+        &self,
+        _arg_types: &[arrow::datatypes::DataType],
+    ) -> error::Result<arrow::datatypes::DataType> {
         Ok(arrow::datatypes::DataType::Float64)
     }
 
@@ -66,9 +70,12 @@ impl logical_expr::AggregateUDFImpl for KurtosisPopFunction {
         Ok(vec![
             arrow::datatypes::Field::new("count", arrow::datatypes::DataType::UInt64, true).into(),
             arrow::datatypes::Field::new("sum", arrow::datatypes::DataType::Float64, true).into(),
-            arrow::datatypes::Field::new("sum_sqr", arrow::datatypes::DataType::Float64, true).into(),
-            arrow::datatypes::Field::new("sum_cub", arrow::datatypes::DataType::Float64, true).into(),
-            arrow::datatypes::Field::new("sum_four", arrow::datatypes::DataType::Float64, true).into(),
+            arrow::datatypes::Field::new("sum_sqr", arrow::datatypes::DataType::Float64, true)
+                .into(),
+            arrow::datatypes::Field::new("sum_cub", arrow::datatypes::DataType::Float64, true)
+                .into(),
+            arrow::datatypes::Field::new("sum_four", arrow::datatypes::DataType::Float64, true)
+                .into(),
         ])
     }
 
