@@ -1,0 +1,6 @@
+[advisories]
+# Allow the paste crate vulnerability since it's marked as unmaintained
+# but we still need it for our macros functionality
+ignore = [
+    "RUSTSEC-2024-0436", # paste - no longer maintained
+]

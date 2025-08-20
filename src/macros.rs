@@ -55,7 +55,7 @@ macro_rules! create_func {
             static [< STATIC_ $UDAF >]: std::sync::OnceLock<std::sync::Arc<datafusion::logical_expr::AggregateUDF>> =
                 std::sync::OnceLock::new();
 
-            #[doc = concat!("AggregateFunction that returns a [`AggregateUDF`](datafusion_expr::AggregateUDF) for [`", stringify!($UDAF), "`]")]
+            #[doc = concat!("AggregateFunction that returns a [`AggregateUDF`](datafusion::logical_expr::AggregateUDF) for [`", stringify!($UDAF), "`]")]
             pub fn $AGGREGATE_UDF_FN() -> std::sync::Arc<datafusion::logical_expr::AggregateUDF> {
                 [< STATIC_ $UDAF >]
                     .get_or_init(|| {

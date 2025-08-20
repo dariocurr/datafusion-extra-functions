@@ -33,7 +33,7 @@ pub fn all_extra_aggregate_functions() -> Vec<sync::Arc<logical_expr::AggregateU
     ]
 }
 
-/// Registers all enabled packages with a [`FunctionRegistry`]
+/// Registers all enabled packages with a [`execution::FunctionRegistry`]
 pub fn register_all_extra_functions(
     registry: &mut dyn execution::FunctionRegistry,
 ) -> df_common::Result<()> {
