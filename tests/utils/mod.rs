@@ -1,5 +1,5 @@
 use datafusion::{arrow, error, execution, sql};
-use datafusion_functions_extra::register_all_extra_functions;
+use datafusion_extra_functions::register_all_extra_functions;
 use log::debug;
 
 pub struct TestExecution {
