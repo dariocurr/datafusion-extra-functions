@@ -2,7 +2,7 @@ use arrow::util::bench_util::{create_primitive_array, create_string_array};
 use criterion::{Criterion, criterion_group, criterion_main};
 use datafusion::{arrow, logical_expr::Accumulator};
 use datafusion_extra_functions::common::mode::{BytesModeAccumulator, PrimitiveModeAccumulator};
-use std::{hint, sync};
+use std::{hint, slice, sync};
 
 fn prepare_primitive_mode_accumulator() -> Box<dyn Accumulator> {
     Box::new(
@@ -20,7 +20,7 @@ fn mode_bench_primitive(c: &mut Criterion, name: &str, values: arrow::array::Arr
     let mut accumulator = prepare_primitive_mode_accumulator();
     c.bench_function(name, |b| {
         b.iter(|| {
-            accumulator.update_batch(&[values.clone()]).unwrap();
+            accumulator.update_batch(slice::from_ref(&values)).unwrap();
             hint::black_box(accumulator.evaluate().unwrap());
         });
     });
@@ -30,7 +30,7 @@ fn mode_bench_bytes(c: &mut Criterion, name: &str, values: arrow::array::ArrayRe
     let mut accumulator = prepare_bytes_mode_accumulator();
     c.bench_function(name, |b| {
         b.iter(|| {
-            accumulator.update_batch(&[values.clone()]).unwrap();
+            accumulator.update_batch(slice::from_ref(&values)).unwrap();
             hint::black_box(accumulator.evaluate().unwrap());
         });
     });
